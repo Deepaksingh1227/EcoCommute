@@ -1,89 +1,50 @@
-import express from "express";
-import {
-  registerUser,
-  loginUser,
-  getUserById,
-  updateUserProfile,
-} from "../services/authService.js";
-import { authMiddleware } from "../middleware/auth.js";
+import mongoose from "mongoose";
 
-const router = express.Router();
-
-/**
- * POST /api/auth/signup
- * body: { name, email, password }
- */
-router.post("/signup", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "All fields required" });
-    }
-
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ error: "Password must be at least 6 characters" });
-    }
-
-    const result = await registerUser(name, email, password);
-    res.status(201).json(result);
-  } catch (err) {
-    console.error("Signup error:", err);
-    res.status(400).json({ error: err.message });
-  }
+// NOTE: User model is not defined yet. This is a placeholder.
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  preferences: { type: Object },
 });
 
-/**
- * POST /api/auth/login
- * body: { email, password }
- */
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+export const User = mongoose.model("User", userSchema);
 
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Email and password required" });
-    }
-
-    const result = await loginUser(email, password);
-    res.json(result);
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(401).json({ error: err.message });
+export const registerUser = async (name, email, password) => {
+  // Placeholder function
+  console.log("registerUser called with", { name, email, password });
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw new Error("User already exists");
   }
-});
+  // NOTE: Password should be hashed before saving
+  const user = new User({ name, email, password });
+  await user.save();
+  return { user: { name, email }, token: "dummy-token" };
+};
 
-/**
- * GET /api/auth/me
- * Protected route - requires JWT token
- */
-router.get("/me", authMiddleware, async (req, res) => {
-  try {
-    const user = await getUserById(req.userId);
-    res.json({ user });
-  } catch (err) {
-    console.error("Get user error:", err);
-    res.status(500).json({ error: err.message });
+export const loginUser = async (email, password) => {
+  // Placeholder function
+  console.log("loginUser called with", { email, password });
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error("Invalid credentials");
   }
-});
-
-/**
- * PUT /api/auth/profile
- * Protected route - update user profile
- */
-router.put("/profile", authMiddleware, async (req, res) => {
-  try {
-    const { name, preferences } = req.body;
-    const user = await updateUserProfile(req.userId, name, preferences);
-    res.json({ user });
-  } catch (err) {
-    console.error("Update profile error:", err);
-    res.status(500).json({ error: err.message });
+  // NOTE: Password should be compared with hashed password
+  if (user.password !== password) {
+    throw new Error("Invalid credentials");
   }
-});
+  return { user: { name: user.name, email }, token: "dummy-token" };
+};
 
-export default router;
+export const getUserById = async (userId) => {
+  // Placeholder function
+  console.log("getUserById called with", { userId });
+  return { name: "Test User", email: "test@example.com" };
+};
+
+export const updateUserProfile = async (userId, name, preferences) => {
+  // Placeholder function
+  console.log("updateUserProfile called with", { userId, name, preferences });
+  return { name, email: "test@example.com", preferences };
+};

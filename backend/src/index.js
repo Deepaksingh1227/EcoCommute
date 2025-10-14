@@ -1,3 +1,4 @@
+// backend/src/index.js
 import dotenv from "dotenv";
 dotenv.config(); // ✅ must be first
 
@@ -6,7 +7,6 @@ import cors from "cors";
 
 import { initDb } from "./db/index.js";
 import apiRoutes from "./routes/apiRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
 import healthRoutes from "./routes/health.js";
 
 const app = express();
@@ -16,12 +16,11 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", authRoutes);
 app.use("/api", apiRoutes);
 app.use("/health", healthRoutes);
 
 // Server port
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 4000;
 
 // Check if DATABASE_URL exists before connecting
 if (!process.env.DATABASE_URL) {
