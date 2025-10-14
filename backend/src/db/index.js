@@ -1,4 +1,3 @@
-// src/db/index.js
 import mongoose from "mongoose";
 
 export async function initDb() {
@@ -15,18 +14,22 @@ export async function initDb() {
   }
 }
 
-// User schema
+// User schema with authentication fields
 export const UserSchema = new mongoose.Schema({
-  name: { type: String },
-  email: { type: String, unique: true },
-  preferences: { type: Object },
+  name: { type: String, required: true },
+  email: { type: String, unique: true, required: true, lowercase: true },
+  password: { type: String, required: true },
+  preferences: { type: Object, default: {} },
   created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
 });
 
 export const User = mongoose.model("User", UserSchema);
 
 // Route schema
 export const RouteSchema = new mongoose.Schema({
+  routeId: { type: String, required: true, unique: true },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   origin: {
     lat: Number,
     lng: Number,
