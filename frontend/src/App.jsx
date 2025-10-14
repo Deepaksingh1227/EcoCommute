@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Navigation, Zap, Leaf, Clock, TrendingUp, Activity, Award, BarChart3 } from "lucide-react";
 import MapView from "./components/MapVIew/MapView";
+import ProfileDropdown from "./components/Auth/ProfileDropdown";
 import { getRoutes, chooseRoute, getCityStats } from "./services/api";
+import { useAuth } from "./context/AuthContext";
 
 // Enhanced Route Card Component
 const EnhancedRouteCard = ({ route, onChoose, isSelected }) => {
@@ -104,7 +106,8 @@ const EnhancedRouteCard = ({ route, onChoose, isSelected }) => {
             cursor: 'pointer',
             backgroundColor: isSelected ? '#3b82f6' : '#f1f5f9',
             color: isSelected ? 'white' : '#334155',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            fontFamily: 'inherit'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = isSelected ? '#2563eb' : '#e2e8f0';
@@ -294,6 +297,7 @@ const Dashboard = ({ cityStats }) => {
 
 // Main App Component
 export default function App() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [origin, setOrigin] = useState('12.9716,77.5946');
   const [dest, setDest] = useState('12.9352,77.6245');
   const [routes, setRoutes] = useState([]);
@@ -356,15 +360,39 @@ export default function App() {
     return () => clearTimeout(t);
   }, [alpha]);
 
+  // Redirect to login if not authenticated
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)'
+      }}>
+        <Activity size={48} style={{ color: '#3b82f6' }} className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    window.location.href = '/login';
+    return null;
+  }
+
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Sidebar */}
       <div style={{ width: '420px', backgroundColor: 'white', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', overflowY: 'auto' }}>
         {/* Header */}
         <div style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8)', padding: '24px', color: 'white' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <Leaf size={32} />
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>EcoCommute</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Leaf size={32} />
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>EcoCommute</h1>
+            </div>
+            {/* Profile Dropdown */}
+            <ProfileDropdown />
           </div>
           <p style={{ color: '#bfdbfe', fontSize: '14px', margin: 0 }}>Smart & Sustainable Navigation</p>
         </div>

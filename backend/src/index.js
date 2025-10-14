@@ -1,12 +1,13 @@
 // backend/src/index.js
 import dotenv from "dotenv";
-dotenv.config(); // ✅ must be first
+dotenv.config();
 
 import express from "express";
 import cors from "cors";
 
 import { initDb } from "./db/index.js";
 import apiRoutes from "./routes/apiRoutes.js";
+import authRoutes from "./routes/authRoutes.js"; // ✅ Import auth routes
 import healthRoutes from "./routes/health.js";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api", apiRoutes);
+app.use("/api/auth", authRoutes); // ✅ Add auth routes
 app.use("/health", healthRoutes);
 
 // Server port
