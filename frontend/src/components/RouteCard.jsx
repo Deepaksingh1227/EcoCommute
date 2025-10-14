@@ -5,13 +5,15 @@ export default function RouteCard({ route, onChoose, isSelected }) {
   const modeIcons = {
     "driving-car": "🚗",
     "cycling-regular": "🚴",
-    "foot-walking": "🚶",
+    bike: "🏍️",
+    bus: "🚌",
   };
 
   const modeColors = {
     "driving-car": "from-blue-500 to-blue-600",
     "cycling-regular": "from-green-500 to-green-600",
-    "foot-walking": "from-purple-500 to-purple-600",
+    bike: "from-purple-500 to-purple-600",
+    bus: "from -yellow-500 to organge-700",
   };
 
   return (
@@ -52,7 +54,9 @@ export default function RouteCard({ route, onChoose, isSelected }) {
           </div>
           <div className="flex items-center gap-2 text-slate-600">
             <Zap size={14} className="text-amber-500" />
-            <span className="font-medium">{route.predicted_duration_min} min</span>
+            <span className="font-medium">
+              {route.predicted_duration_min} min
+            </span>
           </div>
           <div className="flex items-center gap-2 text-slate-600">
             <Leaf size={14} className="text-green-500" />

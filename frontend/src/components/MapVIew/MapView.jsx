@@ -118,9 +118,9 @@ function RoutePolyline({
 
         if (data.routes && data.routes.length > 0) {
           const routeData =
-            data.routes[routeIndex === 1
-              ? Math.min(1, data.routes.length - 1)
-              : 0];
+            data.routes[
+              routeIndex === 1 ? Math.min(1, data.routes.length - 1) : 0
+            ];
           if (routeData && routeData.geometry) {
             const coords = routeData.geometry.coordinates.map((coord) => [
               coord[1],
@@ -177,8 +177,10 @@ export default function MapView({ center = [0, 0], routes = [] }) {
   const colorForMode = (mode) => {
     const m = mode.toLowerCase();
     if (m.includes("driving") || m.includes("car")) return "#3b82f6";
-    if (m.includes("cycling") || m.includes("bike")) return "#22c55e";
-    if (m.includes("walking") || m.includes("foot")) return "#f97316";
+    if (m.includes("driving") || m.includes("bike")) return "#f97316";
+    if (m.includes("cycling") || m.includes("foot")) return "#22c55e";
+    if (m.includes("driving") || m.includes("bus")) return "#f97316";
+
     return "#8b5cf6";
   };
 
@@ -190,7 +192,8 @@ export default function MapView({ center = [0, 0], routes = [] }) {
   const modeIcons = {
     "driving-car": "🚗",
     "cycling-regular": "🚴",
-    "foot-walking": "🚶",
+    bike: "🏍️",
+    bus: "🚌",
   };
 
   const handleRouteClick = (route) => {
@@ -242,12 +245,18 @@ export default function MapView({ center = [0, 0], routes = [] }) {
 
         {/* Markers */}
         {uniqueOrigin && (
-          <Marker position={[uniqueOrigin.lat, uniqueOrigin.lng]} icon={greenIcon}>
+          <Marker
+            position={[uniqueOrigin.lat, uniqueOrigin.lng]}
+            icon={greenIcon}
+          >
             <Popup>📍 Origin</Popup>
           </Marker>
         )}
         {uniqueDestination && (
-          <Marker position={[uniqueDestination.lat, uniqueDestination.lng]} icon={redIcon}>
+          <Marker
+            position={[uniqueDestination.lat, uniqueDestination.lng]}
+            icon={redIcon}
+          >
             <Popup>🎯 Destination</Popup>
           </Marker>
         )}
@@ -284,7 +293,9 @@ export default function MapView({ center = [0, 0], routes = [] }) {
             {selectedRoute ? "Selected Route" : `Routes (${routes.length})`}
           </h3>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
             {(selectedRoute ? [selectedRoute] : routes).map((r, idx) => (
               <div
                 key={r.routeId || idx}
