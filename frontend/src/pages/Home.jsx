@@ -4,6 +4,7 @@ import ParetoSlider from "../components/ParetoSlider";
 import RouteCard from "../components/RouteCard";
 import Dashboard from "../components/Dashboard";
 import { getRoutes, chooseRoute, getCityStats } from "../services/api";
+import { MapPin, Leaf, Activity } from "lucide-react";
 
 export default function Home() {
   const [origin, setOrigin] = useState("12.9716,77.5946");
@@ -11,6 +12,7 @@ export default function Home() {
   const [routes, setRoutes] = useState([]);
   const [alpha, setAlpha] = useState(0.5);
   const [loading, setLoading] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState(null);
   const [cityStats, setCityStats] = useState({ total_emission_g: 0 });
 
   const center = (() => {
@@ -32,6 +34,7 @@ export default function Home() {
         alpha
       );
       setRoutes(res);
+      setSelectedRoute(null);
     } catch {
       alert("Failed to get routes. Check backend.");
     } finally {
@@ -44,6 +47,7 @@ export default function Home() {
   }
 
   async function handleChoose(route) {
+    setSelectedRoute(route.routeId);
     try {
       await chooseRoute(null, route.routeId, route);
       alert("Route chosen!");
@@ -64,93 +68,106 @@ export default function Home() {
   }, [alpha]);
 
   return (
-    <div className="grid grid-cols-[400px,1fr] h-screen gap-4 p-4 bg-slate-50">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Sidebar */}
-      <div className="overflow-y-auto p-4 rounded-2xl bg-white border border-slate-100">
-        <h1 className="text-2xl font-semibold text-slate-800 mb-4">
-          EcoCommute
-        </h1>
-
-        {/* Origin & Destination */}
-        <div className="space-y-2 mb-4">
-          <label className="text-sm text-slate-600 font-semibold">Origin</label>
-          <input
-            type="text"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            className="w-full p-2 border border-slate-200 rounded-xl"
-          />
-          <label className="text-sm text-slate-600 font-semibold">
-            Destination
-          </label>
-          <input
-            type="text"
-            value={dest}
-            onChange={(e) => setDest(e.target.value)}
-            className="w-full p-2 border border-slate-200 rounded-xl"
-          />
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={fetchRoutes}
-              className="btn btn-primary flex-1"
-              disabled={loading}
-            >
-              {loading ? "Loading..." : "Get Routes"}
-            </button>
-            <button
-              onClick={() => {
-                setOrigin("12.9716,77.5946");
-                setDest("12.9352,77.6245");
-              }}
-              className="btn btn-secondary flex-1"
-            >
-              Reset
-            </button>
+      <div className="w-[420px] bg-white shadow-xl overflow-y-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="flex items-center gap-3 mb-2">
+            <Leaf size={32} className="animate-pulse" />
+            <h1 className="text-2xl font-bold">EcoCommute</h1>
           </div>
+          <p className="text-blue-100 text-sm">Smart & Sustainable Navigation</p>
         </div>
 
-        {/* Trade-Off Slider */}
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-700 mb-2">
-            Trade-Off
-          </h2>
-          <ParetoSlider alpha={alpha} setAlpha={setAlpha} />
-        </div>
-
-        {/* Candidate Routes */}
-        <h2 className="text-lg font-semibold text-slate-700 mb-2">
-          Candidate Routes
-        </h2>
-        {routes.length === 0 ? (
-          <p className="text-sm text-slate-500 mb-2">
-            No routes yet. Click "Get Routes".
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {routes.map((r) => (
-              <RouteCard
-                key={r.routeId}
-                route={r}
-                onChoose={() => handleChoose(r)}
+        <div className="p-6 space-y-6">
+          {/* Origin & Destination */}
+          <div className="space-y-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                <MapPin size={16} className="text-green-500" />
+                Origin
+              </label>
+              <input
+                type="text"
+                value={origin}
+                onChange={(e) => setOrigin(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
               />
-            ))}
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                <MapPin size={16} className="text-red-500" />
+                Destination
+              </label>
+              <input
+                type="text"
+                value={dest}
+                onChange={(e) => setDest(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={fetchRoutes}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Activity size={18} className="animate-spin" />
+                    Loading...
+                  </span>
+                ) : (
+                  "Get Routes"
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setOrigin("12.9716,77.5946");
+                  setDest("12.9352,77.6245");
+                }}
+                className="px-4 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* City Stats */}
-        <h2 className="text-lg font-semibold text-slate-700 mt-6 mb-2">
-          City Stats
-        </h2>
-        <p className="text-sm text-slate-500">
-          Total emissions:{" "}
-          <strong>{(cityStats.total_emission_g / 1000).toFixed(3)} kg</strong>
-        </p>
+          {/* Trade-Off Slider */}
+          <ParetoSlider alpha={alpha} setAlpha={setAlpha} />
+
+          {/* Candidate Routes */}
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 mb-4">
+              Candidate Routes
+            </h2>
+            {routes.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-8">
+                No routes yet. Click "Get Routes".
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {routes.map((r) => (
+                  <RouteCard
+                    key={r.routeId}
+                    route={r}
+                    onChoose={() => handleChoose(r)}
+                    isSelected={selectedRoute === r.routeId}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Dashboard */}
+          <Dashboard cityStats={cityStats} />
+        </div>
       </div>
 
       {/* Map Area */}
-      <div className="rounded-2xl overflow-hidden border border-slate-200 relative">
+      <div className="flex-1 relative">
         <MapView center={center} routes={routes} />
-        <Dashboard />
       </div>
     </div>
   );
