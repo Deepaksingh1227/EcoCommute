@@ -2,10 +2,11 @@
 
 // emission factors g CO2 per km (simple demo values)
 const EMISSION_FACTORS = {
-  petrol_car: 192,
-  electric_car: 50,
-  bus: 105,
-  bike: 0,
+  petrol_car: 192, // 🚗
+  electric_car: 50, // ⚡
+  bus: 105, // 🚌
+  bike: 40, // 🏍 (Motorbike)
+  cycling: 0, // 🚴 Human-powered → Zero
 };
 
 // named export

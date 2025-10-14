@@ -75,11 +75,20 @@ router.get("/routes", async (req, res) => {
       }
 
       // ✅ 5. Calculate emissions
-      let vehicle = "petrol_car";
-      if (mode.includes("cycling") || mode.includes("bike")) vehicle = "bike";
-      if (mode.includes("foot")) vehicle = "bike";
-      if (mode.includes("electric")) vehicle = "electric_car";
 
+      let vehicle = "petrol_car"; // default
+
+      const modeLower = mode.toLowerCase();
+
+      if (modeLower.includes("cycling")) {
+        vehicle = "cycling"; // 🚴 Pedal Cycle → 0
+      } else if (modeLower.includes("bike") || modeLower.includes("motor")) {
+        vehicle = "bike"; // 🏍 Motorbike → lower than car
+      } else if (modeLower.includes("bus")) {
+        vehicle = "bus"; // 🚌 Public Bus
+      } else if (modeLower.includes("electric")) {
+        vehicle = "electric_car"; // ⚡ EV
+      }
       const emission_g = computeEmission(routeData.distance_km, vehicle);
 
       // ✅ 6. Build route candidate object
