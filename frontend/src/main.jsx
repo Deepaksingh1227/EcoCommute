@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import App from "./App";
 import LoginForm from "./components/Auth/LoginForm";
 import SignupForm from "./components/Auth/SignupForm";
+import ProfilePage from "./pages/ProfilePage";
 
 function AuthenticatedApp() {
   return (
@@ -18,6 +19,7 @@ function AuthenticatedApp() {
           <Route path="/login" element={<LoginForm onSwitchToSignup={() => window.location.href = '/signup'} onLoginSuccess={() => window.location.href = '/'} />} />
           <Route path="/signup" element={<SignupForm onSwitchToLogin={() => window.location.href = '/login'} onSignupSuccess={() => window.location.href = '/'} />} />
           <Route path="/" element={<App />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>

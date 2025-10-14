@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { User, LogOut, Settings, ChevronDown } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,6 +24,16 @@ export default function ProfileDropdown() {
     logout();
     setIsOpen(false);
     window.location.href = "/login";
+  };
+
+  const handleProfileClick = () => {
+    setIsOpen(false);
+    navigate("/profile");
+  };
+
+  const handleSettingsClick = () => {
+    setIsOpen(false);
+    console.log("Navigate to settings");
   };
 
   const getInitials = (name) => {
@@ -151,10 +163,7 @@ export default function ProfileDropdown() {
           <div style={{ padding: '8px' }}>
             {/* My Profile */}
             <button
-              onClick={() => {
-                setIsOpen(false);
-                console.log("Navigate to profile");
-              }}
+              onClick={handleProfileClick}
               style={{
                 width: '100%',
                 display: 'flex',
@@ -180,10 +189,7 @@ export default function ProfileDropdown() {
 
             {/* Settings */}
             <button
-              onClick={() => {
-                setIsOpen(false);
-                console.log("Navigate to settings");
-              }}
+              onClick={handleSettingsClick}
               style={{
                 width: '100%',
                 display: 'flex',
