@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import MapView from "./components/MapVIew/MapView";
 import ProfileDropdown from "./components/Auth/ProfileDropdown";
-import { getRoutes, chooseRoute, getCityStats } from "./services/api";
+import { getRoutes, getCityStats } from "./services/api";
+import { chooseRoute } from "./services/routeService"; // ✅ Import here
 import { useAuth } from "./context/AuthContext";
 
 // Enhanced Route Card Component
@@ -435,6 +436,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [cityStats, setCityStats] = useState({ total_emission_g: 0 });
+  const [saving, setSaving] = useState(false); // ✅ New state
 
   const center = (() => {
     try {
@@ -458,7 +460,7 @@ export default function App() {
       setSelectedRoute(null);
     } catch (e) {
       console.error(e);
-      alert("Failed to fetch routes from backend");
+      alert("❌ Failed to fetch routes from backend");
     } finally {
       setLoading(false);
       try {
@@ -468,16 +470,29 @@ export default function App() {
     }
   };
 
+  // ✅ FIXED handleChoose function
   const handleChoose = async (route) => {
     setSelectedRoute(route.routeId);
+    setSaving(true);
+
     try {
-      await chooseRoute(null, route.routeId, route);
-      alert("Route chosen – saved!");
+      console.log("🚀 Attempting to save route:", route.routeId);
+      
+      // Call the imported function directly
+      await chooseRoute(route.routeId, route);
+      
+      console.log("✅ Route saved successfully");
+      alert("✅ Route saved successfully!");
+
+      // Refresh stats
       const stats = await getCityStats();
       setCityStats(stats);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to save route");
+    } catch (error) {
+      console.error("❌ Route save error:", error);
+      alert("❌ Failed to save route: " + error.message);
+      setSelectedRoute(null);
+    } finally {
+      setSaving(false);
     }
   };
 

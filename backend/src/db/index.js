@@ -26,7 +26,7 @@ export const UserSchema = new mongoose.Schema({
 
 export const User = mongoose.model("User", UserSchema);
 
-// Route schema
+// Route schema - UPDATED WITH ADDITIONAL FIELDS
 export const RouteSchema = new mongoose.Schema({
   routeId: { type: String, required: true, unique: true },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -34,10 +34,12 @@ export const RouteSchema = new mongoose.Schema({
     lat: Number,
     lng: Number,
   },
+  origin_name: { type: String, default: "Unknown" },
   dest: {
     lat: Number,
     lng: Number,
   },
+  dest_name: { type: String, default: "Unknown" },
   mode: String,
   distance_km: Number,
   duration_min: Number,
@@ -46,12 +48,14 @@ export const RouteSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+RouteSchema.index({ origin_name: "text", dest_name: "text", mode: 1 });
+
 export const Route = mongoose.model("Route", RouteSchema);
 
-// Choice schema
+// Choice schema - FIXED: use String for IDs, not ObjectId
 export const ChoiceSchema = new mongoose.Schema({
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  route_id: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
+  user_id: { type: String }, // ✅ Changed from ObjectId to String
+  route_id: { type: String }, // ✅ Changed from ObjectId to String (UUID)
   chosen_at: { type: Date, default: Date.now },
 });
 
