@@ -163,7 +163,7 @@ function RoutePolyline({
         positions={routeCoords}
         pathOptions={getPathOptions()}
         eventHandlers={{
-          click: () => onClick && onClick(), // ✅ click to select
+          click: () => onClick && onClick(),
         }}
       />
     </>
@@ -177,10 +177,9 @@ export default function MapView({ center = [0, 0], routes = [] }) {
   const colorForMode = (mode) => {
     const m = mode.toLowerCase();
     if (m.includes("driving") || m.includes("car")) return "#3b82f6";
-    if (m.includes("driving") || m.includes("bike")) return "#f97316";
-    if (m.includes("cycling") || m.includes("foot")) return "#22c55e";
-    if (m.includes("driving") || m.includes("bus")) return "#f97316";
-
+    if (m.includes("bike")) return "#f97316";
+    if (m.includes("cycling")) return "#22c55e";
+    if (m.includes("bus")) return "#a855f7";
     return "#8b5cf6";
   };
 
@@ -197,13 +196,19 @@ export default function MapView({ center = [0, 0], routes = [] }) {
   };
 
   const handleRouteClick = (route) => {
-    // toggle selection
     if (selectedRoute && selectedRoute.routeId === route.routeId) {
       setSelectedRoute(null);
     } else {
       setSelectedRoute(route);
     }
   };
+
+  // Find best route (lowest emissions)
+  const bestRoute = routes.length > 0 
+    ? routes.reduce((best, current) => 
+        current.emission_g < best.emission_g ? current : best
+      )
+    : null;
 
   return (
     <div style={{ height: "100%", width: "100%", position: "relative" }}>
@@ -262,7 +267,7 @@ export default function MapView({ center = [0, 0], routes = [] }) {
         )}
       </MapContainer>
 
-      {/* Right-side panel */}
+      {/* Right-side comparison panel */}
       {routes.length > 0 && (
         <div
           style={{
@@ -272,89 +277,193 @@ export default function MapView({ center = [0, 0], routes = [] }) {
             backgroundColor: "rgba(255, 255, 255, 0.98)",
             borderRadius: "16px",
             boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.3)",
-            padding: "18px",
+            padding: "20px",
             border: "2px solid #e2e8f0",
-            maxWidth: "320px",
+            maxWidth: "400px",
+            maxHeight: "85vh",
+            overflowY: "auto",
             zIndex: 1000,
           }}
         >
           <h3
             style={{
-              fontSize: "16px",
+              fontSize: "20px",
               fontWeight: "bold",
               color: "#1e293b",
-              marginBottom: "14px",
+              marginBottom: "18px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "10px",
             }}
           >
-            <Navigation size={20} style={{ color: "#2563eb" }} />
-            {selectedRoute ? "Selected Route" : `Routes (${routes.length})`}
+            <Navigation size={24} style={{ color: "#2563eb" }} />
+            Route Comparison
           </h3>
 
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-          >
-            {(selectedRoute ? [selectedRoute] : routes).map((r, idx) => (
-              <div
-                key={r.routeId || idx}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                  fontSize: "13px",
-                  padding: "12px",
-                  backgroundColor:
-                    selectedRoute && selectedRoute.routeId === r.routeId
-                      ? "#dbeafe"
-                      : "#f8fafc",
-                  borderRadius: "10px",
-                  borderLeft: `5px solid ${colorForMode(r.mode)}`,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div style={{ fontSize: "28px" }}>
-                  {modeIcons[r.mode] || "🚗"}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      color: "#1e293b",
-                      fontWeight: "700",
-                      fontSize: "14px",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    {r.mode.replace("-", " ").replace("regular", "").trim()}
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "4px",
-                      fontSize: "11px",
-                    }}
-                  >
-                    <div style={{ color: "#64748b" }}>
-                      📏 <strong>{r.distance_km} km</strong>
-                    </div>
-                    <div style={{ color: "#64748b" }}>
-                      ⏱️ <strong>{r.duration_min} min</strong>
-                    </div>
+          {/* Comparison Cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {routes.map((r, idx) => {
+              const isSelected = selectedRoute && selectedRoute.routeId === r.routeId;
+              const isBest = bestRoute && bestRoute.routeId === r.routeId;
+              
+              return (
+                <div
+                  key={r.routeId || idx}
+                  onClick={() => handleRouteClick(r)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    padding: "16px",
+                    backgroundColor: isSelected ? "#dbeafe" : "#f8fafc",
+                    borderRadius: "12px",
+                    borderLeft: `6px solid ${colorForMode(r.mode)}`,
+                    boxShadow: isSelected
+                      ? "0 4px 12px rgba(37, 99, 235, 0.25)"
+                      : "0 2px 6px rgba(0,0,0,0.08)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    position: "relative",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      e.currentTarget.style.transform = "translateX(-3px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = "#f8fafc";
+                      e.currentTarget.style.transform = "translateX(0)";
+                    }
+                  }}
+                >
+                  {/* Best Route Badge */}
+                  {isBest && (
                     <div
                       style={{
-                        color: r.emission_g === 0 ? "#22c55e" : "#64748b",
-                        gridColumn: "1 / -1",
-                        fontWeight: "600",
+                        position: "absolute",
+                        top: "-8px",
+                        right: "12px",
+                        backgroundColor: "#22c55e",
+                        color: "white",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        padding: "3px 8px",
+                        borderRadius: "12px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                       }}
                     >
-                      🌱 {(r.emission_g / 1000).toFixed(2)} kg CO₂
+                      ⭐ ECO-FRIENDLY
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: "36px", lineHeight: 1 }}>
+                    {modeIcons[r.mode] || "🚗"}
+                  </div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        color: "#1e293b",
+                        fontWeight: "700",
+                        fontSize: "16px",
+                        marginBottom: "10px",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {r.mode.replace("-", " ").replace("regular", "").trim()}
+                    </div>
+                    
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: "#475569",
+                        }}
+                      >
+                        <span>📏 Distance:</span>
+                        <strong style={{ color: "#1e293b" }}>
+                          {r.distance_km} km
+                        </strong>
+                      </div>
+                      
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: "#475569",
+                        }}
+                      >
+                        <span>⏱️ Duration:</span>
+                        <strong style={{ color: "#1e293b" }}>
+                          {r.duration_min} min
+                        </strong>
+                      </div>
+                      
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: r.emission_g === 0 ? "#22c55e" : "#475569",
+                          fontWeight: "600",
+                          paddingTop: "4px",
+                          borderTop: "1px solid #e2e8f0",
+                        }}
+                      >
+                        <span>🌱 CO₂ Emission:</span>
+                        <strong
+                          style={{
+                            color: r.emission_g === 0 ? "#22c55e" : "#dc2626",
+                          }}
+                        >
+                          {(r.emission_g / 1000).toFixed(2)} kg
+                        </strong>
+                      </div>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Summary Statistics */}
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "16px",
+              backgroundColor: "#f0f9ff",
+              borderRadius: "12px",
+              border: "2px solid #bfdbfe",
+            }}
+          >
+            <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e40af", marginBottom: "10px" }}>
+              💡 Quick Comparison Summary
+            </div>
+            <div style={{ fontSize: "12px", color: "#1e3a8a", lineHeight: "1.6" }}>
+              <div style={{ marginBottom: "6px" }}>
+                <strong>Fastest:</strong>{" "}
+                {routes.reduce((fastest, r) => 
+                  r.duration_min < fastest.duration_min ? r : fastest
+                ).mode.replace("-", " ").replace("regular", "").trim()} 
+                {" "}({routes.reduce((fastest, r) => 
+                  r.duration_min < fastest.duration_min ? r : fastest
+                ).duration_min} min)
               </div>
-            ))}
+              <div>
+                <strong>Most Eco-Friendly:</strong>{" "}
+                {bestRoute.mode.replace("-", " ").replace("regular", "").trim()} 
+                {" "}({(bestRoute.emission_g / 1000).toFixed(2)} kg CO₂)
+              </div>
+            </div>
           </div>
         </div>
       )}
