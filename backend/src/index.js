@@ -7,18 +7,27 @@ import cors from "cors";
 
 import { initDb } from "./db/index.js";
 import apiRoutes from "./routes/apiRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // ✅ Import auth routes
+import authRoutes from "./routes/authRoutes.js";
 import healthRoutes from "./routes/health.js";
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// ✅ CORS Configuration - YE CHANGE KARNA HAI
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://ecocommute-frontend.onrender.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Routes
 app.use("/api", apiRoutes);
-app.use("/api/auth", authRoutes); // ✅ Add auth routes
+app.use("/api/auth", authRoutes);
 app.use("/health", healthRoutes);
 
 // Server port
