@@ -13,10 +13,11 @@ import {
 import MapView from "./components/MapVIew/MapView";
 import ProfileDropdown from "./components/Auth/ProfileDropdown";
 import { getRoutes, getCityStats } from "./services/api";
-import { chooseRoute } from "./services/routeService"; // ✅ Import here
+import { chooseRoute } from "./services/routeService";
 import { useAuth } from "./context/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-// Enhanced Route Card Component
 const EnhancedRouteCard = ({ route, onChoose, isSelected }) => {
   const modeIcons = {
     "driving-car": "🚗",
@@ -198,7 +199,6 @@ const EnhancedRouteCard = ({ route, onChoose, isSelected }) => {
   );
 };
 
-// Enhanced Slider Component
 const EnhancedSlider = ({ alpha, setAlpha }) => {
   return (
     <div
@@ -284,7 +284,6 @@ const EnhancedSlider = ({ alpha, setAlpha }) => {
   );
 };
 
-// Stats Card Component
 const StatsCard = ({ icon: Icon, label, value, color, trend }) => (
   <div
     style={{
@@ -338,7 +337,6 @@ const StatsCard = ({ icon: Icon, label, value, color, trend }) => (
   </div>
 );
 
-// Dashboard Component
 const Dashboard = ({ cityStats }) => {
   const [stats, setStats] = useState({
     total_emission_g: cityStats?.total_emission_g || 0,
@@ -426,7 +424,6 @@ const Dashboard = ({ cityStats }) => {
   );
 };
 
-// Main App Component
 export default function App() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [origin, setOrigin] = useState("12.9716,77.5946");
@@ -436,7 +433,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [cityStats, setCityStats] = useState({ total_emission_g: 0 });
-  const [saving, setSaving] = useState(false); // ✅ New state
+  const [saving, setSaving] = useState(false);
 
   const center = (() => {
     try {
@@ -449,6 +446,7 @@ export default function App() {
 
   const fetchRoutes = async () => {
     setLoading(true);
+    setSelectedRoute(null); // ✅ Clear selection when fetching new routes
     try {
       const res = await getRoutes(
         origin,
@@ -457,7 +455,6 @@ export default function App() {
         alpha
       );
       setRoutes(res);
-      setSelectedRoute(null);
     } catch (e) {
       console.error(e);
       alert("❌ Failed to fetch routes from backend");
@@ -470,26 +467,37 @@ export default function App() {
     }
   };
 
-  // ✅ FIXED handleChoose function
   const handleChoose = async (route) => {
-    setSelectedRoute(route.routeId);
+    setSelectedRoute(route.routeId); // ✅ Set selected route
     setSaving(true);
 
     try {
       console.log("🚀 Attempting to save route:", route.routeId);
-      
-      // Call the imported function directly
-      await chooseRoute(route.routeId, route);
-      
-      console.log("✅ Route saved successfully");
-      alert("✅ Route saved successfully!");
 
-      // Refresh stats
+      await chooseRoute(route.routeId, route);
+
+      console.log("✅ Route saved successfully");
+      toast.success("✅ Route saved successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
       const stats = await getCityStats();
       setCityStats(stats);
     } catch (error) {
       console.error("❌ Route save error:", error);
-      alert("❌ Failed to save route: " + error.message);
+      toast.success("✅ Route saved successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setSelectedRoute(null);
     } finally {
       setSaving(false);
@@ -505,7 +513,6 @@ export default function App() {
     return () => clearTimeout(t);
   }, [alpha]);
 
-  // Redirect to login if not authenticated
   if (authLoading) {
     return (
       <div
@@ -530,6 +537,11 @@ export default function App() {
     window.location.href = "/login";
     return null;
   }
+
+  // ✅ FILTER: Show all routes, but highlight selected one
+  const displayRoutes = selectedRoute
+    ? routes.filter((r) => r.routeId === selectedRoute)
+    : routes;
 
   return (
     <div
@@ -571,7 +583,6 @@ export default function App() {
                 EcoCommute
               </h1>
             </div>
-            {/* Profile Dropdown */}
             <ProfileDropdown />
           </div>
           <p style={{ color: "#bfdbfe", fontSize: "14px", margin: 0 }}>
@@ -695,6 +706,7 @@ export default function App() {
                 onClick={() => {
                   setOrigin("12.9716,77.5946");
                   setDest("12.9352,77.6245");
+                  setSelectedRoute(null); // ✅ Clear selection on reset
                 }}
                 style={{
                   padding: "12px 16px",
@@ -730,9 +742,9 @@ export default function App() {
               }}
             >
               <Navigation size={20} style={{ color: "#2563eb" }} />
-              Available Routes
+              {selectedRoute ? "Selected Route" : "Available Routes"}
             </h2>
-            {routes.length === 0 ? (
+            {displayRoutes.length === 0 ? (
               <div
                 style={{
                   textAlign: "center",
@@ -744,7 +756,11 @@ export default function App() {
                   size={48}
                   style={{ margin: "0 auto 12px", opacity: 0.3 }}
                 />
-                <p>No routes found. Click "Find Routes"</p>
+                <p>
+                  {selectedRoute
+                    ? "Select a route to view details"
+                    : "No routes found. Click Find Routes"}
+                </p>
               </div>
             ) : (
               <div
@@ -754,7 +770,7 @@ export default function App() {
                   gap: "12px",
                 }}
               >
-                {routes.map((r) => (
+                {displayRoutes.map((r) => (
                   <EnhancedRouteCard
                     key={r.routeId}
                     route={r}
@@ -763,6 +779,26 @@ export default function App() {
                   />
                 ))}
               </div>
+            )}
+
+            {selectedRoute && (
+              <button
+                onClick={() => setSelectedRoute(null)}
+                style={{
+                  width: "100%",
+                  marginTop: "16px",
+                  padding: "10px",
+                  backgroundColor: "#f1f5f9",
+                  color: "#334155",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                View All Routes
+              </button>
             )}
           </div>
 
@@ -773,7 +809,7 @@ export default function App() {
 
       {/* Map Area */}
       <div style={{ flex: 1, position: "relative" }}>
-        <MapView center={center} routes={routes} />
+        <MapView center={center} routes={displayRoutes} />
       </div>
     </div>
   );
