@@ -119,12 +119,14 @@ const ProfilePage = () => {
       padding: "0 32px 32px",
       marginTop: "-80px",
       position: "relative",
+      textAlign: "center",
     },
     profileFlex: {
       display: "flex",
       flexDirection: "column",
       gap: "24px",
       marginBottom: "24px",
+      alignItems: "center",
     },
     avatar: {
       width: "144px",
